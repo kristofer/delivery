@@ -1,0 +1,29 @@
+{{define "cohort_form.html"}}
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Deliver – {{if .Cohort}}Edit{{else}}New{{end}} Cohort</title>
+<link rel="stylesheet" href="/static/style.css"></head>
+<body>
+{{template "nav" .}}
+<main>
+  <h1>{{if .Cohort}}Edit Cohort{{else}}New Cohort{{end}}</h1>
+  <form method="POST" action="{{if .Cohort}}/cohorts/{{.Cohort.ID}}/edit{{else}}/cohorts{{end}}">
+    <label>Name (e.g. Summer26)
+      <input type="text" name="name" value="{{if .Cohort}}{{.Cohort.Name}}{{end}}" required>
+    </label>
+    <label>Focus (e.g. Java, Data)
+      <input type="text" name="focus" value="{{if .Cohort}}{{.Cohort.Focus}}{{end}}" required>
+    </label>
+    <label>Start Date
+      <input type="date" name="start_date" value="{{if .Cohort}}{{formatDate .Cohort.StartDate.Time}}{{end}}">
+    </label>
+    <label>End Date
+      <input type="date" name="end_date" value="{{if .Cohort}}{{formatDate .Cohort.EndDate.Time}}{{end}}">
+    </label>
+    <button type="submit">Save</button>
+    <a href="/cohorts">Cancel</a>
+  </form>
+</main>
+<footer><p>Deliver &copy; 2026</p></footer>
+</body></html>
+{{end}}

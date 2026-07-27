@@ -1,0 +1,26 @@
+{{define "login.html"}}
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Deliver – Login</title>
+<link rel="stylesheet" href="/static/style.css"></head>
+<body>
+<main class="center-card">
+  <h1>&#x1F69A; Deliver – Login</h1>
+  {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+  <section>
+    <h2>Administrator Login</h2>
+    <form method="POST" action="/login/local">
+      <label>Username<input type="text" name="username" required autofocus></label>
+      <label>Password<input type="password" name="password" required></label>
+      <button type="submit">Sign In</button>
+    </form>
+  </section>
+  <hr>
+  <section>
+    <h2>GitHub Login</h2>
+    <a class="btn-github" href="/auth/github">Sign in with GitHub</a>
+    <p class="hint">You must be whitelisted by an administrator to access the system.</p>
+  </section>
+</main>
+</body></html>
+{{end}}

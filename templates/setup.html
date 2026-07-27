@@ -1,0 +1,18 @@
+{{define "setup.html"}}
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Deliver – Initial Setup</title>
+<link rel="stylesheet" href="/static/style.css"></head>
+<body>
+<main class="center-card">
+  <h1>Deliver – Initial Setup</h1>
+  <p>Create the first administrator account.</p>
+  {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+  <form method="POST" action="/setup">
+    <label>Username<input type="text" name="username" required autofocus></label>
+    <label>Password<input type="password" name="password" required></label>
+    <button type="submit">Create Admin</button>
+  </form>
+</main>
+</body></html>
+{{end}}

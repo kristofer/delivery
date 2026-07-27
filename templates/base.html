@@ -1,0 +1,25 @@
+{{define "nav"}}
+<header>
+  <nav>
+    <a href="/" class="brand">&#x1F69A; Deliver</a>
+    <span class="spacer"></span>
+    {{if or .CurrentUser .IsLocalAdmin}}
+      {{if .IsLocalAdmin}}
+        <span class="nav-user">Admin (local)</span>
+      {{else}}
+        <span class="nav-user">
+          {{if .CurrentUser.AvatarURL}}<img src="{{.CurrentUser.AvatarURL}}" class="avatar" alt="">{{end}}
+          {{.CurrentUser.GitHubLogin}} ({{.CurrentUser.Role}})
+        </span>
+      {{end}}
+      {{if or .IsLocalAdmin (eq .CurrentUser.Role "admin") (eq .CurrentUser.Role "instructor")}}
+        <a href="/admin">Admin</a>
+      {{end}}
+      <a href="/cohorts">Cohorts</a>
+      <a href="/logout">Logout</a>
+    {{else}}
+      <a href="/login">Login</a>
+    {{end}}
+  </nav>
+</header>
+{{end}}

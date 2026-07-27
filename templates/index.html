@@ -1,0 +1,26 @@
+{{define "index.html"}}
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Deliver</title>
+<link rel="stylesheet" href="/static/style.css">
+<script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+</head>
+<body>
+{{template "nav" .}}
+<main>
+  <h1>Welcome to Deliver</h1>
+  <p>Track and submit your project assignments.</p>
+  {{if .Cohorts}}
+  <h2>Cohorts</h2>
+  <ul class="card-list">
+    {{range .Cohorts}}
+    <li><a href="/cohorts/{{.ID}}">{{.Name}} – {{.Focus}}</a></li>
+    {{end}}
+  </ul>
+  {{else}}
+  <p>No cohorts yet. <a href="/cohorts">Manage cohorts</a>.</p>
+  {{end}}
+</main>
+<footer><p>Deliver &copy; 2026</p></footer>
+</body></html>
+{{end}}

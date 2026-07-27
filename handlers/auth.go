@@ -1,0 +1,157 @@
+package handlers
+
+import (
+	"database/sql"
+	"net/http"
+	"os"
+
+	"github.com/markbates/goth"
+	"github.com/markbates/goth/gothic"
+	"github.com/markbates/goth/providers/github"
+	"golang.org/x/crypto/bcrypt"
+)
+
+// InitOAuth configures GitHub OAuth via goth.
+func InitOAuth(clientID, clientSecret, callbackURL string) {
+	goth.UseProviders(
+		github.New(clientID, clientSecret, callbackURL, "user:email"),
+	)
+}
+
+// LoginPage renders the login form.
+func (a *App) LoginPage(w http.ResponseWriter, r *http.Request) {
+	data := map[string]interface{}{
+		"Error": r.URL.Query().Get("error"),
+	}
+	renderTemplate(w, "login.html", data)
+}
+
+// LocalLoginPost handles the local admin login form POST.
+func (a *App) LocalLoginPost(w http.ResponseWriter, r *http.Request) {
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+
+	admin, err := a.Users.GetLocalAdmin(username)
+	if err == sql.ErrNoRows || admin == nil {
+		http.Redirect(w, r, "/login?error=invalid+credentials", http.StatusFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+	if err := bcrypt.CompareHashAndPassword([]byte(admin.PasswordHash), []byte(password)); err != nil {
+		http.Redirect(w, r, "/login?error=invalid+credentials", http.StatusFound)
+		return
+	}
+
+	sess, _ := a.Store.Get(r, sessionName)
+	sess.Values[sessionIsAdmin] = true
+	sess.Values[sessionAdminID] = admin.ID
+	if err := sess.Save(r, w); err != nil {
+		http.Error(w, "Could not save session", http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/admin", http.StatusFound)
+}
+
+// GitHubAuthBegin redirects to GitHub OAuth.
+func (a *App) GitHubAuthBegin(w http.ResponseWriter, r *http.Request) {
+	gothic.BeginAuthHandler(w, r)
+}
+
+// GitHubAuthCallback handles the OAuth callback.
+func (a *App) GitHubAuthCallback(w http.ResponseWriter, r *http.Request) {
+	gothUser, err := gothic.CompleteUserAuth(w, r)
+	if err != nil {
+		http.Redirect(w, r, "/login?error=oauth+failed", http.StatusFound)
+		return
+	}
+
+	var ghID int64
+	for _, c := range gothUser.RawData {
+		if id, ok := c.(float64); ok {
+			ghID = int64(id)
+			break
+		}
+	}
+
+	user, err := a.Users.UpsertGitHubUser(
+		gothUser.NickName,
+		ghID,
+		gothUser.Name,
+		gothUser.Email,
+		gothUser.AvatarURL,
+	)
+	if err != nil || user == nil {
+		http.Redirect(w, r, "/login?error=db+error", http.StatusFound)
+		return
+	}
+
+	if !user.Whitelisted {
+		http.Error(w, "Your GitHub account is not yet approved. Contact an administrator.", http.StatusForbidden)
+		return
+	}
+
+	sess, _ := a.Store.Get(r, sessionName)
+	sess.Values[sessionUserID] = user.ID
+	sess.Values[sessionIsAdmin] = false
+	if err := sess.Save(r, w); err != nil {
+		http.Error(w, "Could not save session", http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/", http.StatusFound)
+}
+
+// Logout clears the session.
+func (a *App) Logout(w http.ResponseWriter, r *http.Request) {
+	sess, _ := a.Store.Get(r, sessionName)
+	sess.Options.MaxAge = -1
+	_ = sess.Save(r, w)
+	http.Redirect(w, r, "/login", http.StatusFound)
+}
+
+// SetupPage shows the initial admin setup form (only if no local admins exist).
+func (a *App) SetupPage(w http.ResponseWriter, r *http.Request) {
+	count, _ := a.Users.CountLocalAdmins()
+	if count > 0 {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+	renderTemplate(w, "setup.html", nil)
+}
+
+// SetupPost creates the first local admin.
+func (a *App) SetupPost(w http.ResponseWriter, r *http.Request) {
+	count, _ := a.Users.CountLocalAdmins()
+	if count > 0 {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+	if username == "" || password == "" {
+		renderTemplate(w, "setup.html", map[string]interface{}{"Error": "username and password required"})
+		return
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+	if err := a.Users.CreateLocalAdmin(username, string(hash)); err != nil {
+		http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// Also set GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET from env if present
+	clientID := os.Getenv("GITHUB_CLIENT_ID")
+	clientSecret := os.Getenv("GITHUB_CLIENT_SECRET")
+	if clientID != "" && clientSecret != "" {
+		callbackURL := os.Getenv("GITHUB_CALLBACK_URL")
+		if callbackURL == "" {
+			callbackURL = "http://localhost:8080/auth/github/callback"
+		}
+		InitOAuth(clientID, clientSecret, callbackURL)
+	}
+	http.Redirect(w, r, "/login", http.StatusFound)
+}

@@ -1,0 +1,36 @@
+{{define "activity_form.html"}}
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Deliver – {{if .Activity}}Edit{{else}}New{{end}} Activity</title>
+<link rel="stylesheet" href="/static/style.css"></head>
+<body>
+{{template "nav" .}}
+<main>
+  <h1>{{if .Activity}}Edit Activity{{else}}New Activity{{end}}</h1>
+  <form method="POST" action="{{if .Activity}}/cohorts/{{.CohortID}}/activities/{{.Activity.ID}}/edit{{else}}/cohorts/{{.CohortID}}/weeks/{{.WeekID}}/activities{{end}}">
+    <label>Title
+      <input type="text" name="title" value="{{if .Activity}}{{.Activity.Title}}{{end}}" required autofocus>
+    </label>
+    <label>Description
+      <textarea name="description" rows="4">{{if .Activity}}{{.Activity.Description}}{{end}}</textarea>
+    </label>
+    <label>Source URL (template repo)
+      <input type="url" name="source_url" value="{{if .Activity}}{{.Activity.SourceURL}}{{end}}">
+    </label>
+    <label>Assigned Date
+      <input type="date" name="assigned_date" value="{{if .Activity}}{{formatDate .Activity.AssignedDate.Time}}{{end}}">
+    </label>
+    <label>Due Date
+      <input type="date" name="due_date" value="{{if .Activity}}{{formatDate .Activity.DueDate.Time}}{{end}}">
+    </label>
+    <label class="checkbox-label">
+      <input type="checkbox" name="is_group" value="1" {{if and .Activity .Activity.IsGroup}}checked{{end}}>
+      Group submission
+    </label>
+    <button type="submit">Save</button>
+    <a href="/cohorts/{{.CohortID}}">Cancel</a>
+  </form>
+</main>
+<footer><p>Deliver &copy; 2026</p></footer>
+</body></html>
+{{end}}

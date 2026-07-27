@@ -1,0 +1,79 @@
+{{define "admin.html"}}
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Deliver – Admin</title>
+<link rel="stylesheet" href="/static/style.css">
+<script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+</head>
+<body>
+{{template "nav" .}}
+<main>
+  <h1>Admin Dashboard</h1>
+
+  {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+
+  <section>
+    <h2>Create Local Admin Account</h2>
+    <form method="POST" action="/admin/local-admins">
+      <label>Username<input type="text" name="username" required></label>
+      <label>Password<input type="password" name="password" required></label>
+      <button type="submit">Create</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>GitHub Users</h2>
+    <table>
+      <thead><tr><th>Login</th><th>Name</th><th>Role</th><th>Whitelisted</th><th>Actions</th></tr></thead>
+      <tbody>
+      {{range .Users}}
+      <tr>
+        <td><a href="https://github.com/{{.GitHubLogin}}" target="_blank">{{.GitHubLogin}}</a></td>
+        <td>{{.Name}}</td>
+        <td>{{.Role}}</td>
+        <td>{{if .Whitelisted}}✅{{else}}❌{{end}}</td>
+        <td>
+          {{if not .Whitelisted}}
+          <form method="POST" action="/admin/users/{{.ID}}/whitelist" style="display:inline">
+            <select name="role">
+              <option value="student">Student</option>
+              <option value="instructor">Instructor</option>
+              <option value="admin">Admin</option>
+            </select>
+            <button type="submit">Approve</button>
+          </form>
+          {{else}}
+          <form method="POST" action="/admin/users/{{.ID}}/role" style="display:inline">
+            <select name="role">
+              <option value="student" {{if eq .Role "student"}}selected{{end}}>Student</option>
+              <option value="instructor" {{if eq .Role "instructor"}}selected{{end}}>Instructor</option>
+              <option value="admin" {{if eq .Role "admin"}}selected{{end}}>Admin</option>
+            </select>
+            <button type="submit">Update Role</button>
+          </form>
+          <form method="POST" action="/admin/users/{{.ID}}/revoke" style="display:inline">
+            <button type="submit" class="btn-danger">Revoke</button>
+          </form>
+          {{end}}
+        </td>
+      </tr>
+      {{else}}
+      <tr><td colspan="5">No GitHub users have logged in yet.</td></tr>
+      {{end}}
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Cohorts</h2>
+    <a class="btn" href="/cohorts/new">+ New Cohort</a>
+    <ul class="card-list">
+      {{range .Cohorts}}
+      <li><a href="/cohorts/{{.ID}}">{{.Name}} – {{.Focus}}</a></li>
+      {{end}}
+    </ul>
+  </section>
+</main>
+<footer><p>Deliver &copy; 2026</p></footer>
+</body></html>
+{{end}}
