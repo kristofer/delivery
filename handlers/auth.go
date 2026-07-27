@@ -13,11 +13,33 @@ import (
 	"github.com/kristofer/delivery/config"
 )
 
+const (
+	localAdminUsernameEnv = "LOCAL_ADMIN_USERNAME"
+	localAdminPasswordEnv = "LOCAL_ADMIN_PASSWORD"
+)
+
 // InitOAuth configures GitHub OAuth via goth.
 func InitOAuth(clientID, clientSecret, callbackURL string) {
 	goth.UseProviders(
 		github.New(clientID, clientSecret, callbackURL, "user:email"),
 	)
+}
+
+func (a *App) bootstrapLocalAdminFromEnv() (bool, error) {
+	username := os.Getenv(localAdminUsernameEnv)
+	password := os.Getenv(localAdminPasswordEnv)
+	if username == "" || password == "" {
+		return false, nil
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return false, err
+	}
+	if err := a.Users.CreateLocalAdmin(username, string(hash)); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // LoginPage renders the login form.
@@ -120,6 +142,15 @@ func (a *App) SetupPage(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
+	created, err := a.bootstrapLocalAdminFromEnv()
+	if err != nil {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+	if created {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
 	renderTemplate(w, "setup.html", nil)
 }
 
@@ -127,6 +158,15 @@ func (a *App) SetupPage(w http.ResponseWriter, r *http.Request) {
 func (a *App) SetupPost(w http.ResponseWriter, r *http.Request) {
 	count, _ := a.Users.CountLocalAdmins()
 	if count > 0 {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+	created, err := a.bootstrapLocalAdminFromEnv()
+	if err != nil {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+	if created {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
