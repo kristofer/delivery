@@ -67,7 +67,7 @@ Then open <http://localhost:8080/setup> to create the first administrator accoun
 ### Run with Docker
 
 ```bash
-docker build -t deliver /home/runner/work/delivery/delivery
+docker build -t deliver .
 
 docker run --rm \
   -p 8080:8080 \
