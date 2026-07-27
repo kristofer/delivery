@@ -1,0 +1,7 @@
+.git
+deliver
+*.db
+*.db-shm
+*.db-wal
+*.out
+coverage.*

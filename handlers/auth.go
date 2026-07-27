@@ -9,6 +9,8 @@ import (
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/github"
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/kristofer/delivery/config"
 )
 
 // InitOAuth configures GitHub OAuth via goth.
@@ -147,11 +149,7 @@ func (a *App) SetupPost(w http.ResponseWriter, r *http.Request) {
 	clientID := os.Getenv("GITHUB_CLIENT_ID")
 	clientSecret := os.Getenv("GITHUB_CLIENT_SECRET")
 	if clientID != "" && clientSecret != "" {
-		callbackURL := os.Getenv("GITHUB_CALLBACK_URL")
-		if callbackURL == "" {
-			callbackURL = "http://localhost:8080/auth/github/callback"
-		}
-		InitOAuth(clientID, clientSecret, callbackURL)
+		InitOAuth(clientID, clientSecret, config.OAuthCallbackURL())
 	}
 	http.Redirect(w, r, "/login", http.StatusFound)
 }

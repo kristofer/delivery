@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/markbates/goth/gothic"
 
+	"github.com/kristofer/delivery/config"
 	"github.com/kristofer/delivery/db"
 	"github.com/kristofer/delivery/handlers"
 	"github.com/kristofer/delivery/models"
@@ -18,12 +19,12 @@ import (
 func main() {
 	// ── Configuration ────────────────────────────────────────────────────────
 	dbPath := getenv("DB_PATH", "deliver.db")
-	addr := getenv("ADDR", ":8080")
+	addr := config.Addr()
 	sessionSecret := getenv("SESSION_SECRET", "change-me-in-production")
 
 	clientID := getenv("GITHUB_CLIENT_ID", "")
 	clientSecret := getenv("GITHUB_CLIENT_SECRET", "")
-	callbackURL := getenv("GITHUB_CALLBACK_URL", "http://localhost:8080/auth/github/callback")
+	callbackURL := config.OAuthCallbackURL()
 
 	// ── Database ─────────────────────────────────────────────────────────────
 	database, err := db.Open(dbPath)
@@ -41,11 +42,8 @@ func main() {
 	store := sessions.NewCookieStore([]byte(sessionSecret))
 	store.MaxAge(86400 * 7) // 7 days
 	store.Options.HttpOnly = true
-	store.Options.Secure = false // set true in production behind HTTPS
+	store.Options.Secure = config.SessionSecure()
 	store.Options.SameSite = http.SameSiteLaxMode
-	if os.Getenv("SESSION_SECURE") == "true" {
-		store.Options.Secure = true
-	}
 	gothic.Store = store
 
 	// ── App ───────────────────────────────────────────────────────────────────
