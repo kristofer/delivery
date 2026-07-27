@@ -64,7 +64,7 @@ go build -o deliver .
 ./deliver
 ```
 
-Then open <http://localhost:8080/login>. If no local admins exist and `LOCAL_ADMIN_USERNAME` + `LOCAL_ADMIN_PASSWORD` are set, the app creates that first administrator automatically. Without those env vars, use <http://localhost:8080/setup> to create the first administrator account manually.
+Then open <http://localhost:8080/login>. If `LOCAL_ADMIN_USERNAME` and `LOCAL_ADMIN_PASSWORD` are set and no local admins exist, the app creates the first administrator automatically. Otherwise, use <http://localhost:8080/setup> to create the first administrator account manually.
 
 ### Run with Docker
 

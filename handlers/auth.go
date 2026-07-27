@@ -144,7 +144,7 @@ func (a *App) SetupPage(w http.ResponseWriter, r *http.Request) {
 	}
 	created, err := a.bootstrapLocalAdminFromEnv()
 	if err != nil {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Failed to bootstrap admin account", http.StatusInternalServerError)
 		return
 	}
 	if created {
@@ -163,7 +163,7 @@ func (a *App) SetupPost(w http.ResponseWriter, r *http.Request) {
 	}
 	created, err := a.bootstrapLocalAdminFromEnv()
 	if err != nil {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Failed to bootstrap admin account", http.StatusInternalServerError)
 		return
 	}
 	if created {
