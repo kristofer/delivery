@@ -51,6 +51,21 @@ func (a *App) bootstrapLocalAdminFromEnv() (bool, error) {
 	return true, nil
 }
 
+// BootstrapFromEnv creates the first local admin from LOCAL_ADMIN_USERNAME /
+// LOCAL_ADMIN_PASSWORD environment variables when no local admin exists yet.
+// It is safe to call at startup; it is a no-op when an admin already exists or
+// when the env vars are not set.
+func (a *App) BootstrapFromEnv() error {
+	created, err := a.bootstrapLocalAdminFromEnv()
+	if err != nil {
+		return err
+	}
+	if created {
+		log.Printf("local admin account bootstrapped from environment variables")
+	}
+	return nil
+}
+
 func (a *App) ensureSetupReady(w http.ResponseWriter, r *http.Request) bool {
 	count, err := a.Users.CountLocalAdmins()
 	if err != nil {

@@ -57,6 +57,11 @@ func main() {
 		Groups:  &models.GroupStore{DB: database},
 	}
 
+	// ── Bootstrap local admin from env ───────────────────────────────────────
+	if err := app.BootstrapFromEnv(); err != nil {
+		log.Fatalf("bootstrap local admin: %v", err)
+	}
+
 	// ── Router ────────────────────────────────────────────────────────────────
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
