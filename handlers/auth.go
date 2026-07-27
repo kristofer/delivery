@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
 	"os"
 
@@ -13,11 +14,65 @@ import (
 	"github.com/kristofer/delivery/config"
 )
 
+const (
+	localAdminUsernameEnv = "LOCAL_ADMIN_USERNAME"
+	localAdminPasswordEnv = "LOCAL_ADMIN_PASSWORD"
+)
+
 // InitOAuth configures GitHub OAuth via goth.
 func InitOAuth(clientID, clientSecret, callbackURL string) {
 	goth.UseProviders(
 		github.New(clientID, clientSecret, callbackURL, "user:email"),
 	)
+}
+
+func (a *App) bootstrapLocalAdminFromEnv() (bool, error) {
+	count, err := a.Users.CountLocalAdmins()
+	if err != nil {
+		return false, err
+	}
+	if count > 0 {
+		return false, nil
+	}
+
+	username := os.Getenv(localAdminUsernameEnv)
+	password := os.Getenv(localAdminPasswordEnv)
+	if username == "" || password == "" {
+		return false, nil
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return false, err
+	}
+	if err := a.Users.CreateLocalAdmin(username, string(hash)); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (a *App) ensureSetupReady(w http.ResponseWriter, r *http.Request) bool {
+	count, err := a.Users.CountLocalAdmins()
+	if err != nil {
+		http.Error(w, "Failed to verify admin status", http.StatusInternalServerError)
+		return false
+	}
+	if count > 0 {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return false
+	}
+
+	created, err := a.bootstrapLocalAdminFromEnv()
+	if err != nil {
+		log.Printf("bootstrap local admin from env failed: %v", err)
+		http.Error(w, "Failed to bootstrap admin account", http.StatusInternalServerError)
+		return false
+	}
+	if created {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return false
+	}
+	return true
 }
 
 // LoginPage renders the login form.
@@ -115,9 +170,7 @@ func (a *App) Logout(w http.ResponseWriter, r *http.Request) {
 
 // SetupPage shows the initial admin setup form (only if no local admins exist).
 func (a *App) SetupPage(w http.ResponseWriter, r *http.Request) {
-	count, _ := a.Users.CountLocalAdmins()
-	if count > 0 {
-		http.Redirect(w, r, "/login", http.StatusFound)
+	if !a.ensureSetupReady(w, r) {
 		return
 	}
 	renderTemplate(w, "setup.html", nil)
@@ -125,9 +178,7 @@ func (a *App) SetupPage(w http.ResponseWriter, r *http.Request) {
 
 // SetupPost creates the first local admin.
 func (a *App) SetupPost(w http.ResponseWriter, r *http.Request) {
-	count, _ := a.Users.CountLocalAdmins()
-	if count > 0 {
-		http.Redirect(w, r, "/login", http.StatusFound)
+	if !a.ensureSetupReady(w, r) {
 		return
 	}
 	username := r.FormValue("username")

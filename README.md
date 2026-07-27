@@ -50,6 +50,8 @@ cd delivery
 export GITHUB_CLIENT_ID=your_client_id
 export GITHUB_CLIENT_SECRET=your_client_secret
 export SESSION_SECRET=a-long-random-secret
+export LOCAL_ADMIN_USERNAME=admin
+export LOCAL_ADMIN_PASSWORD=change-this-password
 
 # Optional overrides
 export DB_PATH=deliver.db          # default: deliver.db
@@ -62,7 +64,7 @@ go build -o deliver .
 ./deliver
 ```
 
-Then open <http://localhost:8080/setup> to create the first administrator account.
+Then open <http://localhost:8080/login>. If `LOCAL_ADMIN_USERNAME` and `LOCAL_ADMIN_PASSWORD` are set and no local admins exist, the app creates the first administrator automatically. Otherwise, use <http://localhost:8080/setup> to create the first administrator account manually.
 
 ### Run with Docker
 
@@ -72,11 +74,25 @@ docker build -t deliver .
 docker run --rm \
   -p 9209:8080 \
   -e SESSION_SECRET=a-long-random-secret \
+  -e LOCAL_ADMIN_USERNAME=admin \
+  -e LOCAL_ADMIN_PASSWORD=change-this-password \
   -e GITHUB_CLIENT_ID=your_client_id \
   -e GITHUB_CLIENT_SECRET=your_client_secret \
   -e APP_URL=https://deliver.zipcode.rocks \
   -v deliver-data:/data \
   deliver
+```
+
+Or use Docker Compose:
+
+```bash
+SESSION_SECRET=a-long-random-secret \
+LOCAL_ADMIN_USERNAME=admin \
+LOCAL_ADMIN_PASSWORD=change-this-password \
+GITHUB_CLIENT_ID=your_client_id \
+GITHUB_CLIENT_SECRET=your_client_secret \
+APP_URL=https://deliver.zipcode.rocks \
+docker compose up -d --build
 ```
 
 The container stores the SQLite database at `/data/deliver.db` by default, so mount `/data` if you want the data to persist across restarts. The example above publishes the app on host port `9209` while the container continues listening on port `8080`.
@@ -90,6 +106,8 @@ The container stores the SQLite database at `/data/deliver.db` by default, so mo
 | `PORT` | — | Listen port used when `ADDR` is not set (useful for container platforms) |
 | `APP_URL` | derived from `ADDR`/`PORT` | Public base URL used for Docker/proxy deployments and the default OAuth callback |
 | `SESSION_SECRET` | *(insecure default)* | Cookie signing secret — **change in production** |
+| `LOCAL_ADMIN_USERNAME` | — | When set with `LOCAL_ADMIN_PASSWORD`, bootstraps the first local admin account automatically |
+| `LOCAL_ADMIN_PASSWORD` | — | Password used for first local admin bootstrap (set a strong secret in production) |
 | `GITHUB_CLIENT_ID` | — | GitHub OAuth App client ID |
 | `GITHUB_CLIENT_SECRET` | — | GitHub OAuth App client secret |
 | `GITHUB_CALLBACK_URL` | `APP_URL + /auth/github/callback` | OAuth redirect URL override |
@@ -97,7 +115,7 @@ The container stores the SQLite database at `/data/deliver.db` by default, so mo
 
 ## Workflow
 
-1. **Admin** visits `/setup` on first run to create a local admin account
+1. **Admin** logs in with bootstrap credentials from `LOCAL_ADMIN_USERNAME`/`LOCAL_ADMIN_PASSWORD`, or visits `/setup` on first run if those env vars are not set
 2. **Admin** logs in and goes to `/admin` to whitelist GitHub usernames and assign roles
 3. **Instructor** creates cohorts, adds weeks, and adds activities to each week
 4. **Instructor** enrolls students in cohorts
