@@ -54,7 +54,7 @@ func (a *App) bootstrapLocalAdminFromEnv() (bool, error) {
 func (a *App) ensureSetupReady(w http.ResponseWriter, r *http.Request) bool {
 	count, err := a.Users.CountLocalAdmins()
 	if err != nil {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		http.Error(w, "Failed to verify admin status", http.StatusInternalServerError)
 		return false
 	}
 	if count > 0 {

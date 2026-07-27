@@ -11,7 +11,7 @@ import (
 )
 
 func TestBootstrapLocalAdminFromEnvCreatesAdmin(t *testing.T) {
-	f, err := os.CreateTemp("", "deliver-auth-test-*.db")
+	f, err := os.CreateTemp("", "delivery-auth-test-*.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,7 +49,7 @@ func TestBootstrapLocalAdminFromEnvCreatesAdmin(t *testing.T) {
 }
 
 func TestBootstrapLocalAdminFromEnvSkipsWhenMissingCredentials(t *testing.T) {
-	f, err := os.CreateTemp("", "deliver-auth-test-*.db")
+	f, err := os.CreateTemp("", "delivery-auth-test-*.db")
 	if err != nil {
 		t.Fatal(err)
 	}
