@@ -1,0 +1,92 @@
+{{define "cohort_detail.html"}}
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Deliver – {{.Cohort.Name}}</title>
+<link rel="stylesheet" href="/static/style.css">
+<script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+</head>
+<body>
+{{template "nav" .}}
+<main>
+  <div class="page-header">
+    <h1>{{.Cohort.Name}} <small>{{.Cohort.Focus}}</small></h1>
+    {{if or .IsLocalAdmin (and .CurrentUser (or (eq .CurrentUser.Role "admin") (eq .CurrentUser.Role "instructor")))}}
+    <a class="btn" href="/cohorts/{{.Cohort.ID}}/edit">Edit</a>
+    <form method="POST" action="/cohorts/{{.Cohort.ID}}/delete" style="display:inline"
+          onsubmit="return confirm('Delete this cohort?')">
+      <button class="btn-danger">Delete</button>
+    </form>
+    {{end}}
+  </div>
+
+  {{if or .IsLocalAdmin (and .CurrentUser (or (eq .CurrentUser.Role "admin") (eq .CurrentUser.Role "instructor")))}}
+  <section class="card">
+    <h2>Add Week</h2>
+    <form method="POST" action="/cohorts/{{.Cohort.ID}}/weeks" class="inline-form">
+      <input type="number" name="week_number" placeholder="Week #" min="1" required>
+      <input type="text" name="title" placeholder="Title (optional)">
+      <input type="date" name="start_date">
+      <button type="submit">Add Week</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Enrolled Students</h2>
+    <ul>
+      {{range .Enrolled}}
+      <li>
+        <a href="https://github.com/{{.GitHubLogin}}" target="_blank">{{.GitHubLogin}}</a>
+        {{if .Name}}({{.Name}}){{end}}
+        <form method="POST" action="/cohorts/{{$.Cohort.ID}}/unenroll/{{.ID}}" style="display:inline">
+          <button class="btn-danger btn-sm">Remove</button>
+        </form>
+      </li>
+      {{else}}<li>No students enrolled.</li>
+      {{end}}
+    </ul>
+    <h3>Enroll Student</h3>
+    <form method="POST" action="/cohorts/{{.Cohort.ID}}/enroll" class="inline-form">
+      <input type="number" name="user_id" placeholder="User ID" required>
+      <button type="submit">Enroll</button>
+    </form>
+  </section>
+  {{end}}
+
+  <section>
+    <h2>Weeks &amp; Activities</h2>
+    {{range .Weeks}}
+    <div class="week-card">
+      <div class="week-header">
+        <h3>Week {{.WeekNumber}}{{if .Title}}: {{.Title}}{{end}}</h3>
+        {{if or $.IsLocalAdmin (and $.CurrentUser (or (eq $.CurrentUser.Role "admin") (eq $.CurrentUser.Role "instructor")))}}
+        <div>
+          <a class="btn btn-sm" href="/cohorts/{{$.Cohort.ID}}/weeks/{{.ID}}/activities/new">+ Activity</a>
+          <form method="POST" action="/cohorts/{{$.Cohort.ID}}/weeks/{{.ID}}/delete" style="display:inline"
+                onsubmit="return confirm('Delete week and all its activities?')">
+            <button class="btn-danger btn-sm">Delete Week</button>
+          </form>
+        </div>
+        {{end}}
+      </div>
+      {{if .Activities}}
+      <ul class="activity-list">
+        {{range .Activities}}
+        <li>
+          <a href="/cohorts/{{$.Cohort.ID}}/activities/{{.ID}}">{{.Title}}</a>
+          {{if .IsGroup}}<span class="badge">Group</span>{{end}}
+          {{if .DueDate.Valid}}<span class="due">Due: {{formatDate .DueDate.Time}}</span>{{end}}
+        </li>
+        {{end}}
+      </ul>
+      {{else}}
+      <p class="muted">No activities yet.</p>
+      {{end}}
+    </div>
+    {{else}}
+    <p>No weeks yet.</p>
+    {{end}}
+  </section>
+</main>
+<footer><p>Deliver &copy; 2026</p></footer>
+</body></html>
+{{end}}

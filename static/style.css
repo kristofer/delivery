@@ -1,0 +1,131 @@
+/* ── Reset & base ──────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #f5f7fa;
+  color: #1a1a2e;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main { flex: 1; max-width: 960px; width: 100%; margin: 2rem auto; padding: 0 1rem; }
+footer { text-align: center; padding: .75rem; color: #888; font-size: .85rem; }
+
+a { color: #0066cc; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+h1 { font-size: 1.8rem; margin-bottom: 1rem; }
+h2 { font-size: 1.3rem; margin: 1.5rem 0 .75rem; }
+h3 { font-size: 1.1rem; margin: 1rem 0 .5rem; }
+
+/* ── Navigation ────────────────────────────────────────── */
+header {
+  background: #1a1a2e;
+  color: #fff;
+  padding: .75rem 1.5rem;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.brand { color: #fff; font-size: 1.25rem; font-weight: 700; text-decoration: none; }
+.spacer { flex: 1; }
+nav a { color: #cce; font-size: .9rem; }
+nav a:hover { color: #fff; text-decoration: none; }
+.nav-user { font-size: .85rem; color: #aab; display: flex; align-items: center; gap: .4rem; }
+.avatar { width: 24px; height: 24px; border-radius: 50%; }
+
+/* ── Forms ─────────────────────────────────────────────── */
+form { display: flex; flex-direction: column; gap: .75rem; max-width: 520px; }
+label { display: flex; flex-direction: column; gap: .3rem; font-size: .9rem; font-weight: 500; }
+input[type=text], input[type=password], input[type=url], input[type=number],
+input[type=date], input[type=email], textarea, select {
+  padding: .5rem .75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  background: #fff;
+}
+textarea { resize: vertical; min-height: 80px; }
+.checkbox-label { flex-direction: row; align-items: center; gap: .5rem; }
+.inline-form { flex-direction: row; flex-wrap: wrap; gap: .5rem; align-items: center; max-width: none; }
+.inline-form label { flex-direction: row; }
+
+/* ── Buttons ───────────────────────────────────────────── */
+button, .btn {
+  display: inline-block;
+  padding: .45rem 1rem;
+  background: #0066cc;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: .9rem;
+  text-decoration: none;
+}
+button:hover, .btn:hover { background: #0055aa; text-decoration: none; }
+.btn-danger { background: #cc2200; }
+.btn-danger:hover { background: #aa1a00; }
+.btn-sm { padding: .3rem .7rem; font-size: .8rem; }
+.btn-github {
+  display: inline-block;
+  padding: .55rem 1.25rem;
+  background: #24292e;
+  color: #fff;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+.btn-github:hover { background: #444d56; text-decoration: none; }
+
+/* ── Cards ─────────────────────────────────────────────── */
+.card { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.08); padding: 1.25rem; margin: 1rem 0; }
+
+.card-list { list-style: none; padding: 0; }
+.card-list li { padding: .5rem 0; border-bottom: 1px solid #eee; }
+.card-list li:last-child { border-bottom: none; }
+
+.week-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 1rem; margin: 1rem 0; }
+.week-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: .75rem; }
+
+.activity-list { list-style: none; padding: 0; }
+.activity-list li { padding: .4rem 0; display: flex; align-items: center; gap: .5rem; }
+
+.group-card { background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; padding: .75rem; margin: .5rem 0; }
+.group-card ul { list-style: disc; padding-left: 1.25rem; margin: .4rem 0; }
+
+/* ── Misc ──────────────────────────────────────────────── */
+.badge { background: #0066cc; color: #fff; font-size: .75rem; padding: .15rem .5rem; border-radius: 10px; }
+.due { color: #888; font-size: .8rem; }
+.muted { color: #888; font-style: italic; }
+.error { color: #cc2200; background: #fff0ed; border: 1px solid #ffcccc; padding: .6rem 1rem; border-radius: 6px; }
+.hint { color: #777; font-size: .85rem; margin-top: .5rem; }
+
+.page-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.page-header h1 { margin-bottom: 0; flex: 1; }
+
+dl.meta { display: grid; grid-template-columns: max-content 1fr; gap: .3rem .75rem; margin: 1rem 0; }
+dt { font-weight: 600; color: #555; }
+
+table { width: 100%; border-collapse: collapse; margin: .75rem 0; }
+th, td { text-align: left; padding: .5rem .75rem; border-bottom: 1px solid #eee; }
+th { font-size: .85rem; color: #555; background: #fafafa; }
+
+/* ── Center card (login/setup) ─────────────────────────── */
+.center-card {
+  max-width: 440px;
+  margin: 4rem auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.1);
+  padding: 2rem;
+}
+.center-card h1 { margin-bottom: 1.5rem; text-align: center; }
+.center-card section { margin: 1.25rem 0; }
+hr { border: none; border-top: 1px solid #eee; margin: 1.5rem 0; }

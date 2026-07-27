@@ -1,0 +1,119 @@
+{{define "activity_detail.html"}}
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Deliver – {{.Activity.Title}}</title>
+<link rel="stylesheet" href="/static/style.css">
+<script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+</head>
+<body>
+{{template "nav" .}}
+<main>
+  <div class="page-header">
+    <h1>{{.Activity.Title}}
+      {{if .Activity.IsGroup}}<span class="badge">Group</span>{{end}}
+    </h1>
+    {{if or .IsLocalAdmin (and .CurrentUser (or (eq .CurrentUser.Role "admin") (eq .CurrentUser.Role "instructor")))}}
+    {{/* cohort ID is embedded in the back link; edit/delete use a generic path */}}
+    <a class="btn btn-sm" href="javascript:history.back()">Back</a>
+    {{end}}
+  </div>
+
+  {{if .Activity.Description}}
+  <p>{{.Activity.Description}}</p>
+  {{end}}
+
+  <dl class="meta">
+    {{if .Activity.SourceURL}}<dt>Template Repo</dt><dd><a href="{{.Activity.SourceURL}}" target="_blank">{{.Activity.SourceURL}}</a></dd>{{end}}
+    {{if .Activity.AssignedDate.Valid}}<dt>Assigned</dt><dd>{{formatDate .Activity.AssignedDate.Time}}</dd>{{end}}
+    {{if .Activity.DueDate.Valid}}<dt>Due</dt><dd>{{formatDate .Activity.DueDate.Time}}</dd>{{end}}
+  </dl>
+
+  {{/* ── Student submission form ── */}}
+  {{if and .CurrentUser (eq .CurrentUser.Role "student")}}
+  <section class="card">
+    {{if .MySubmission}}
+    <h2>Your Submission</h2>
+    <p><a href="{{.MySubmission.RepoURL}}" target="_blank">{{.MySubmission.RepoURL}}</a></p>
+    {{if .MySubmission.Notes}}<p>{{.MySubmission.Notes}}</p>{{end}}
+    <details>
+      <summary>Update submission</summary>
+      <form method="POST" action="/cohorts/0/activities/{{.Activity.ID}}/submissions/{{.MySubmission.ID}}/edit">
+        <label>Repo URL<input type="url" name="repo_url" value="{{.MySubmission.RepoURL}}" required></label>
+        <label>Notes<textarea name="notes">{{.MySubmission.Notes}}</textarea></label>
+        <button type="submit">Update</button>
+      </form>
+    </details>
+    {{else}}
+    <h2>Submit Your Repo</h2>
+    <form method="POST" action="/cohorts/0/activities/{{.Activity.ID}}/submissions">
+      <label>Your fork / solution URL
+        <input type="url" name="repo_url" placeholder="https://github.com/you/project" required>
+      </label>
+      <label>Notes (optional)<textarea name="notes" rows="2"></textarea></label>
+      {{if .Activity.IsGroup}}
+      <label>Group
+        <select name="group_id">
+          <option value="">-- individual --</option>
+          {{range .Groups}}
+          <option value="{{.ID}}">{{.Name}}</option>
+          {{end}}
+        </select>
+      </label>
+      {{end}}
+      <button type="submit">Submit</button>
+    </form>
+    {{end}}
+  </section>
+  {{end}}
+
+  {{/* ── Instructor / admin submissions view ── */}}
+  {{if or .IsLocalAdmin (and .CurrentUser (or (eq .CurrentUser.Role "admin") (eq .CurrentUser.Role "instructor")))}}
+  <section>
+    <h2>Submissions ({{len .Submissions}})</h2>
+    {{if .Submissions}}
+    <table>
+      <thead><tr><th>Student</th><th>Repo URL</th><th>Submitted</th><th>Notes</th></tr></thead>
+      <tbody>
+      {{range .Submissions}}
+      <tr>
+        <td>
+          {{if .User}}<a href="https://github.com/{{.User.GitHubLogin}}" target="_blank">{{.User.GitHubLogin}}</a>{{end}}
+          {{if .Group}}{{.Group.Name}}{{end}}
+        </td>
+        <td><a href="{{.RepoURL}}" target="_blank">{{.RepoURL}}</a></td>
+        <td>{{.SubmittedAt.Format "2006-01-02 15:04"}}</td>
+        <td>{{.Notes}}</td>
+      </tr>
+      {{end}}
+      </tbody>
+    </table>
+    {{else}}
+    <p>No submissions yet.</p>
+    {{end}}
+  </section>
+
+  {{if .Activity.IsGroup}}
+  <section class="card">
+    <h2>Groups</h2>
+    {{range .Groups}}
+    <div class="group-card">
+      <strong>{{.Name}}</strong>
+      <ul>{{range .Members}}<li>{{.GitHubLogin}}</li>{{end}}</ul>
+      <form method="POST" action="/cohorts/0/activities/{{$.Activity.ID}}/groups/{{.ID}}/members" class="inline-form">
+        <input type="number" name="user_id" placeholder="User ID">
+        <button type="submit">Add Member</button>
+      </form>
+    </div>
+    {{end}}
+    <h3>Create Group</h3>
+    <form method="POST" action="/cohorts/0/activities/{{.Activity.ID}}/groups" class="inline-form">
+      <input type="text" name="name" placeholder="Group name" required>
+      <button type="submit">Create</button>
+    </form>
+  </section>
+  {{end}}
+  {{end}}
+</main>
+<footer><p>Deliver &copy; 2026</p></footer>
+</body></html>
+{{end}}
