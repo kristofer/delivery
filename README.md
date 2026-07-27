@@ -70,7 +70,7 @@ Then open <http://localhost:8080/setup> to create the first administrator accoun
 docker build -t deliver .
 
 docker run --rm \
-  -p 8080:8080 \
+  -p 9209:8080 \
   -e SESSION_SECRET=a-long-random-secret \
   -e GITHUB_CLIENT_ID=your_client_id \
   -e GITHUB_CLIENT_SECRET=your_client_secret \
@@ -79,7 +79,7 @@ docker run --rm \
   deliver
 ```
 
-The container stores the SQLite database at `/data/deliver.db` by default, so mount `/data` if you want the data to persist across restarts.
+The container stores the SQLite database at `/data/deliver.db` by default, so mount `/data` if you want the data to persist across restarts. The example above publishes the app on host port `9209` while the container continues listening on port `8080`.
 
 ### Environment Variables
 
