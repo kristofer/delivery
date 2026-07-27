@@ -1,6 +1,10 @@
 # Deliver
 
+A simple assignment posting app.
+
 **Deliver** is a 3-tier web application for managing student assignment submissions. Students fork a template repository, complete their work, and submit their GitHub repository URL. Instructors can then review each student's commits and code.
+
+> _A 3-tier web app, HTMX, Go and SQLite3; the point of the app is to encapsulate a workflow of adult students who need to submit GitHub repos for various weekly and periodic projects. The student forks and clones a template of a project, they then submit the URL of their solution to the activity (usually a programming project, sometimes a research project). An instructor can then look at the submissions of each student, to review their commits and code._
 
 ## Features
 
