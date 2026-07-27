@@ -3,6 +3,7 @@ package handlers
 import (
 	"html/template"
 	"net/http"
+	"os"
 	"path/filepath"
 	"runtime"
 	"time"
@@ -12,7 +13,7 @@ var templates *template.Template
 
 func init() {
 	_, filename, _, _ := runtime.Caller(0)
-	dir := filepath.Join(filepath.Dir(filename), "..", "templates")
+	dir := templateDir(filename)
 	funcMap := template.FuncMap{
 		"formatDate": func(t interface{}) string {
 			switch v := t.(type) {
@@ -30,6 +31,19 @@ func init() {
 	templates = template.Must(
 		template.New("").Funcs(funcMap).ParseGlob(filepath.Join(dir, "*.html")),
 	)
+}
+
+func templateDir(filename string) string {
+	candidates := []string{
+		filepath.Join(filepath.Dir(filename), "..", "templates"),
+		"templates",
+	}
+	for _, dir := range candidates {
+		if info, err := os.Stat(dir); err == nil && info.IsDir() {
+			return dir
+		}
+	}
+	return candidates[0]
 }
 
 func renderTemplate(w http.ResponseWriter, name string, data interface{}) {

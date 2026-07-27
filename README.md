@@ -37,7 +37,7 @@ A simple assignment posting app.
 - Go 1.21+
 - A GitHub OAuth App (for student/instructor login)
   - Create one at <https://github.com/settings/developers>
-  - Set callback URL to `http://localhost:8080/auth/github/callback`
+  - Set callback URL to your deployed app URL, for example `https://deliver.zipcode.rocks/auth/github/callback`
 
 ### Run
 
@@ -54,6 +54,7 @@ export SESSION_SECRET=a-long-random-secret
 # Optional overrides
 export DB_PATH=deliver.db          # default: deliver.db
 export ADDR=:8080                  # default: :8080
+export APP_URL=http://localhost:8080
 export GITHUB_CALLBACK_URL=http://localhost:8080/auth/github/callback
 
 # Build and run
@@ -63,17 +64,36 @@ go build -o deliver .
 
 Then open <http://localhost:8080/setup> to create the first administrator account.
 
+### Run with Docker
+
+```bash
+docker build -t deliver .
+
+docker run --rm \
+  -p 9209:8080 \
+  -e SESSION_SECRET=a-long-random-secret \
+  -e GITHUB_CLIENT_ID=your_client_id \
+  -e GITHUB_CLIENT_SECRET=your_client_secret \
+  -e APP_URL=https://deliver.zipcode.rocks \
+  -v deliver-data:/data \
+  deliver
+```
+
+The container stores the SQLite database at `/data/deliver.db` by default, so mount `/data` if you want the data to persist across restarts. The example above publishes the app on host port `9209` while the container continues listening on port `8080`.
+
 ### Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `DB_PATH` | `deliver.db` | Path to SQLite database file |
 | `ADDR` | `:8080` | Listen address |
+| `PORT` | — | Listen port used when `ADDR` is not set (useful for container platforms) |
+| `APP_URL` | derived from `ADDR`/`PORT` | Public base URL used for Docker/proxy deployments and the default OAuth callback |
 | `SESSION_SECRET` | *(insecure default)* | Cookie signing secret — **change in production** |
 | `GITHUB_CLIENT_ID` | — | GitHub OAuth App client ID |
 | `GITHUB_CLIENT_SECRET` | — | GitHub OAuth App client secret |
-| `GITHUB_CALLBACK_URL` | `http://localhost:8080/auth/github/callback` | OAuth redirect URL |
-| `SESSION_SECURE` | — | Set to `true` to enable Secure cookie flag (HTTPS only) |
+| `GITHUB_CALLBACK_URL` | `APP_URL + /auth/github/callback` | OAuth redirect URL override |
+| `SESSION_SECURE` | — | Set to `true` to force the Secure cookie flag (it is also enabled automatically when `APP_URL` uses HTTPS) |
 
 ## Workflow
 
