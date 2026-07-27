@@ -79,6 +79,16 @@ docker run --rm \
   deliver
 ```
 
+Or use Docker Compose:
+
+```bash
+SESSION_SECRET=a-long-random-secret \
+GITHUB_CLIENT_ID=your_client_id \
+GITHUB_CLIENT_SECRET=your_client_secret \
+APP_URL=https://deliver.zipcode.rocks \
+docker compose up -d --build
+```
+
 The container stores the SQLite database at `/data/deliver.db` by default, so mount `/data` if you want the data to persist across restarts. The example above publishes the app on host port `9209` while the container continues listening on port `8080`.
 
 ### Environment Variables
